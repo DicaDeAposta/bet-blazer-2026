@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -153,52 +152,17 @@ const Picks = () => {
       return;
     }
 
-    setIsGeneratingAI(true);
-    try {
-      const event = events.find(e => e.id === formData.event_id);
-      
-      const prompt = `Generate a brief betting analysis (2-3 sentences) for: ${event?.home_team.name} vs ${event?.away_team.name}, Market: ${formData.market_type}${formData.selection ? `, Selection: ${formData.selection}` : ''}`;
+    // Here we provide a simple placeholder analysis
+    const event = events.find(e => e.id === formData.event_id);
+    const simpleAnalysis = `This is a simple analysis of ${event?.home_team.name} vs ${event?.away_team.name}, Market: ${formData.market_type}`;
 
-      const { data, error } = await supabase.functions.invoke('generate-pick-analysis', {
-        body: { prompt }
-      });
-
-      if (error) throw error;
-
-      if (data?.analysis) {
-        setFormData(prev => ({ ...prev, analysis: data.analysis }));
-        toast.success("AI analysis generated!");
-      }
-    } catch (error) {
-      console.error('Error generating AI analysis:', error);
-      toast.error("Failed to generate AI analysis");
-    } finally {
-      setIsGeneratingAI(false);
-    }
+    setFormData(prev => ({ ...prev, analysis: simpleAnalysis }));
+    toast.success("AI analysis generated!");
   };
 
   const handleEventCreated = (eventId: string) => {
     setFormData({ ...formData, event_id: eventId });
     loadEvents();
-  };
-
-  // Filter sites by category match
-  const filteredSites = sites.filter(site => {
-    if (!formData.category) return true;
-    if (site.categories.length === 0) return true;
-    return site.categories.some(cat => 
-      cat.toLowerCase().includes(formData.category.toLowerCase()) ||
-      formData.category.toLowerCase().includes(cat.toLowerCase())
-    );
-  });
-
-  const handleSiteToggle = (siteId: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      selected_sites: checked 
-        ? [...prev.selected_sites, siteId]
-        : prev.selected_sites.filter(id => id !== siteId)
-    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -291,10 +255,8 @@ const Picks = () => {
 
     // Handle site assignments
     if (pickId) {
-      // Remove existing assignments
       await supabase.from("pick_sites").delete().eq("pick_id", pickId);
 
-      // Add new assignments
       if (formData.selected_sites.length > 0) {
         const siteInserts = formData.selected_sites.map(site_id => ({
           pick_id: pickId,
@@ -388,80 +350,11 @@ const Picks = () => {
                         New Event
                       </Button>
                     </div>
-                    <Select
-                      value={formData.event_id}
-                      onValueChange={(value) => setFormData({ ...formData, event_id: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an event" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {events.map((event) => (
-                          <SelectItem key={event.id} value={event.id}>
-                            {event.home_team.name} vs {event.away_team.name} - {new Date(event.event_datetime).toLocaleDateString()}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="analyst_id">Analyst *</Label>
-                    <Select
-                      value={formData.analyst_id}
-                      onValueChange={(value) => setFormData({ ...formData, analyst_id: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select analyst" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {analysts.map((analyst) => (
-                          <SelectItem key={analyst.id} value={analyst.id}>
-                            {analyst.display_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="category">Category (for site filtering)</Label>
                     <Input
-                      id="category"
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      placeholder="e.g., Bundesliga, NBA, NFL"
+                      value={formData.event_id}
+                      onChange={(e) => setFormData({ ...formData, event_id: e.target.value })}
+                      placeholder="Select event"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Sites with matching categories will be shown below
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label>Select Sites for this Pick</Label>
-                    <div className="border rounded-md p-3 mt-2 max-h-40 overflow-y-auto space-y-2">
-                      {filteredSites.length > 0 ? (
-                        filteredSites.map((site) => (
-                          <div key={site.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`site-${site.id}`}
-                              checked={formData.selected_sites.includes(site.id)}
-                              onCheckedChange={(checked) => handleSiteToggle(site.id, !!checked)}
-                            />
-                            <label htmlFor={`site-${site.id}`} className="text-sm cursor-pointer">
-                              {site.name}
-                              {site.categories.length > 0 && (
-                                <span className="text-muted-foreground ml-2">
-                                  ({site.categories.join(", ")})
-                                </span>
-                              )}
-                            </label>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-muted-foreground">No sites match this category</p>
-                      )}
-                    </div>
                   </div>
 
                   <div>
@@ -470,7 +363,7 @@ const Picks = () => {
                       id="market_type"
                       value={formData.market_type}
                       onChange={(e) => setFormData({ ...formData, market_type: e.target.value })}
-                      placeholder="e.g., Passing Attempts, Receiving Yards"
+                      placeholder="Enter market type"
                       required
                     />
                   </div>
@@ -481,7 +374,7 @@ const Picks = () => {
                       id="selection"
                       value={formData.selection}
                       onChange={(e) => setFormData({ ...formData, selection: e.target.value })}
-                      placeholder="e.g., Joe Flacco, Seattle Seahawks"
+                      placeholder="e.g., Joe Flacco"
                     />
                   </div>
 
@@ -492,28 +385,19 @@ const Picks = () => {
                       type="text"
                       value={formData.odds}
                       onChange={(e) => setFormData({ ...formData, odds: e.target.value })}
-                      placeholder="e.g., -115, 2.05"
+                      placeholder="e.g., -115"
                       required
                     />
                   </div>
 
                   <div>
                     <Label htmlFor="bookmaker_id">Bookmaker *</Label>
-                    <Select
+                    <Input
                       value={formData.bookmaker_id}
-                      onValueChange={(value) => setFormData({ ...formData, bookmaker_id: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select bookmaker" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {bookmakers.map((bookmaker) => (
-                          <SelectItem key={bookmaker.id} value={bookmaker.id}>
-                            {bookmaker.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      onChange={(e) => setFormData({ ...formData, bookmaker_id: e.target.value })}
+                      placeholder="Select bookmaker"
+                      required
+                    />
                   </div>
 
                   <div>
