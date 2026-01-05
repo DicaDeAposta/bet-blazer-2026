@@ -153,81 +153,45 @@ export const CreateEventDialog = ({ open, onOpenChange, onEventCreated }: Create
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="sport_id">Sport *</Label>
-            <Select
+            <Input
               value={formData.sport_id}
-              onValueChange={handleSportChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select sport" />
-              </SelectTrigger>
-              <SelectContent>
-                {sports.map((sport) => (
-                  <SelectItem key={sport.id} value={sport.id}>
-                    {sport.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(e) => handleSportChange(e.target.value)}
+              placeholder="Select sport"
+              required
+            />
           </div>
 
           <div>
             <Label htmlFor="league_id">League *</Label>
-            <Select
+            <Input
               value={formData.league_id}
-              onValueChange={handleLeagueChange}
+              onChange={(e) => handleLeagueChange(e.target.value)}
               disabled={!formData.sport_id}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select league" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredLeagues.map((league) => (
-                  <SelectItem key={league.id} value={league.id}>
-                    {league.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Select league"
+              required
+            />
           </div>
 
           <div>
             <Label htmlFor="home_team_id">Home Team *</Label>
-            <Select
+            <Input
               value={formData.home_team_id}
-              onValueChange={(value) => setFormData({ ...formData, home_team_id: value })}
+              onChange={(e) => setFormData({ ...formData, home_team_id: e.target.value })}
               disabled={!formData.league_id}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select home team" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredTeams.map((team) => (
-                  <SelectItem key={team.id} value={team.id}>
-                    {team.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Select home team"
+              required
+            />
           </div>
 
           <div>
             <Label htmlFor="away_team_id">Away Team *</Label>
-            <Select
+            <Input
               value={formData.away_team_id}
-              onValueChange={(value) => setFormData({ ...formData, away_team_id: value })}
+              onChange={(e) => setFormData({ ...formData, away_team_id: e.target.value })}
               disabled={!formData.league_id}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select away team" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredTeams.filter(t => t.id !== formData.home_team_id).map((team) => (
-                  <SelectItem key={team.id} value={team.id}>
-                    {team.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Select away team"
+              required
+            />
           </div>
 
           <div>
@@ -260,23 +224,6 @@ export const CreateEventDialog = ({ open, onOpenChange, onEventCreated }: Create
               placeholder="Enter market type"
               required
             />
-          </div>
-
-          <div>
-            <Label htmlFor="language">Language *</Label>
-            <Select
-              value={formData.language}
-              onValueChange={(value: "en" | "pt" | "es") => setFormData({ ...formData, language: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="pt">Portuguese</SelectItem>
-                <SelectItem value="es">Spanish</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="flex gap-2 pt-4">
