@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 interface Sport {
@@ -37,7 +36,7 @@ export const CreateEventDialog = ({ open, onOpenChange, onEventCreated }: Create
   const [filteredLeagues, setFilteredLeagues] = useState<League[]>([]);
   const [filteredTeams, setFilteredTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     sport_id: "",
     league_id: "",
@@ -45,7 +44,8 @@ export const CreateEventDialog = ({ open, onOpenChange, onEventCreated }: Create
     away_team_id: "",
     event_datetime: "",
     venue: "",
-    language: "en" as "en" | "pt" | "es"
+    language: "en" as "en" | "pt" | "es",
+    market_type: "" // Novo campo para market_type como string
   });
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export const CreateEventDialog = ({ open, onOpenChange, onEventCreated }: Create
     e.preventDefault();
 
     if (!formData.sport_id || !formData.league_id || !formData.home_team_id || 
-        !formData.away_team_id || !formData.event_datetime) {
+        !formData.away_team_id || !formData.event_datetime || !formData.market_type) {
       toast.error("Please fill all required fields");
       return;
     }
@@ -130,7 +130,7 @@ export const CreateEventDialog = ({ open, onOpenChange, onEventCreated }: Create
     toast.success("Event created successfully");
     onEventCreated(data.id);
     onOpenChange(false);
-    
+
     // Reset form
     setFormData({
       sport_id: "",
@@ -139,7 +139,8 @@ export const CreateEventDialog = ({ open, onOpenChange, onEventCreated }: Create
       away_team_id: "",
       event_datetime: "",
       venue: "",
-      language: "en"
+      language: "en",
+      market_type: "" // Resetar o campo market_type
     });
   };
 
@@ -247,6 +248,17 @@ export const CreateEventDialog = ({ open, onOpenChange, onEventCreated }: Create
               value={formData.venue}
               onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
               placeholder="e.g., Maracanã Stadium"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="market_type">Market Type *</Label>
+            <Input
+              id="market_type"
+              value={formData.market_type}
+              onChange={(e) => setFormData({ ...formData, market_type: e.target.value })}
+              placeholder="Enter market type"
+              required
             />
           </div>
 
