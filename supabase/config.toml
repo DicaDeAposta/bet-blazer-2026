@@ -1,0 +1,43 @@
+project_id = "bpjjuliiyinuffmkzcxb"
+
+[functions.generate-pick-analysis]
+verify_jwt = true
+
+[functions.api-sports]
+verify_jwt = false
+
+[functions.api-leagues]
+verify_jwt = false
+
+[functions.api-teams]
+verify_jwt = false
+
+[functions.api-events]
+verify_jwt = false
+
+[functions.api-picks]
+verify_jwt = false
+
+[functions.api-bookmakers]
+verify_jwt = false
+
+[functions.api-analysts]
+verify_jwt = false
+
+[functions.api-market-types]
+verify_jwt = false
+
+[functions.api-sites]
+verify_jwt = false
+
+[functions.cleanup-events]
+verify_jwt = false
+
+[functions.embed-pick]
+verify_jwt = false
+
+[functions.embed-site]
+verify_jwt = false
+
+[functions.detach-old-events]
+verify_jwt = false
