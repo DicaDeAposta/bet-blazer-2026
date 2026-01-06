@@ -9,11 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { Loader2, ArrowLeft, Plus, Copy } from "lucide-react";
-// Importação corrigida para export default
-import CreateEventDialog from "@/components/CreateEventDialog";
-
-// ... interfaces permanecem as mesmas ...
+import { ArrowLeft, Plus } from "lucide-react";
+// Importação agora condizente com o 'export const' do componente
+import { CreateEventDialog } from "@/components/CreateEventDialog";
 
 const Picks = () => {
   const navigate = useNavigate();
@@ -79,105 +77,136 @@ const Picks = () => {
   };
 
   const handleEventCreated = (eventId: string) => {
-    loadEvents(); // Recarrega a lista para o novo evento aparecer
-    setFormData(prev => ({ ...prev, event_id: eventId }));
-    toast.success("Evento selecionado automaticamente!");
+    loadEvents().then(() => {
+      setFormData(prev => ({ ...prev, event_id: eventId }));
+      toast.success("Novo evento criado e selecionado!");
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Lógica de Market Type e Insert (igual a sua, mas usando formData.event_id do select)
-    // ... (mantenha seu handleSubmit original aqui)
+    
+    // Lógica para salvar a Pick (Simplificada para o exemplo)
+    const { error } = await supabase.from("picks").insert([{
+        event_id: formData.event_id,
+        analyst_id: formData.analyst_id,
+        bookmaker_id: formData.bookmaker_id,
+        selection: formData.selection,
+        odds: parseFloat(formData.odds),
+        analysis: formData.analysis,
+        confidence_level: parseInt(formData.confidence_level)
+    }]);
+
+    if (error) {
+        toast.error("Erro: " + error.message);
+    } else {
+        toast.success("Aposta criada!");
+        setFormData({ ...formData, selection: "", odds: "", analysis: "" });
+        loadPicks();
+    }
   };
 
   return (
     <ProtectedRoute requireAdmin>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-slate-50">
         <Navbar />
         <main className="container mx-auto px-4 py-8">
           <div className="flex items-center gap-4 mb-8">
             <Button variant="ghost" onClick={() => navigate("/admin")}><ArrowLeft className="mr-2 h-4 w-4" /> Voltar</Button>
-            <h1 className="text-4xl font-bold">Gerenciar Picks</h1>
+            <h1 className="text-3xl font-black uppercase tracking-tighter">Gerenciar Picks</h1>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            <Card>
+            <Card className="shadow-xl border-t-4 border-t-orange-500">
               <CardHeader><CardTitle>Nova Pick</CardTitle></CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* SELETOR DE EVENTO - Substitui o Input de ID */}
+                  
+                  {/* SELEÇÃO DE EVENTO COM NOMES */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <Label>Evento *</Label>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setIsEventDialogOpen(true)}>
-                        <Plus className="h-4 w-4 mr-1" /> Novo Evento
+                      <Label className="font-bold">Evento *</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={() => setIsEventDialogOpen(true)} className="h-7 text-[10px] font-bold uppercase">
+                        <Plus className="h-3 w-3 mr-1" /> New Event
                       </Button>
                     </div>
                     <select 
-                      className="w-full p-2 border rounded-md bg-white"
+                      className="w-full p-2 border rounded-md bg-white text-sm"
                       value={formData.event_id}
                       onChange={(e) => setFormData({...formData, event_id: e.target.value})}
                       required
                     >
-                      <option value="">Selecione um evento existente</option>
+                      <option value="">Selecione o Jogo</option>
                       {events.map(ev => (
                         <option key={ev.id} value={ev.id}>
-                          {ev.home_team?.name} vs {ev.away_team?.name} ({new Date(ev.event_datetime).toLocaleDateString()})
+                          {ev.home_team?.name} vs {ev.away_team?.name}
                         </option>
                       ))}
                     </select>
                   </div>
 
-                  {/* SELETOR DE ANALISTA */}
+                  {/* SELEÇÃO DE ANALISTA */}
                   <div>
-                    <Label>Analista *</Label>
+                    <Label className="font-bold">Expert / Analista *</Label>
                     <select 
-                      className="w-full p-2 border rounded-md bg-white"
+                      className="w-full p-2 border rounded-md bg-white text-sm"
                       value={formData.analyst_id}
                       onChange={(e) => setFormData({...formData, analyst_id: e.target.value})}
                       required
                     >
-                      <option value="">Selecione o analista</option>
+                      <option value="">Quem está dando a dica?</option>
                       {analysts.map(a => <option key={a.id} value={a.id}>{a.display_name}</option>)}
                     </select>
                   </div>
 
-                  <div>
-                    <Label>Tipo de Mercado *</Label>
-                    <Input placeholder="Ex: Vencedor do Encontro" value={formData.market_type} onChange={(e) => setFormData({...formData, market_type: e.target.value})} required />
-                  </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label>Seleção</Label>
-                      <Input placeholder="Ex: Flamengo" value={formData.selection} onChange={(e) => setFormData({...formData, selection: e.target.value})} />
+                      <Label className="font-bold">Seleção</Label>
+                      <Input placeholder="Ex: Over 2.5" value={formData.selection} onChange={(e) => setFormData({...formData, selection: e.target.value})} />
                     </div>
                     <div>
-                      <Label>Odds</Label>
-                      <Input placeholder="Ex: 1.90" value={formData.odds} onChange={(e) => setFormData({...formData, odds: e.target.value})} required />
+                      <Label className="font-bold">Odds</Label>
+                      <Input placeholder="1.90" value={formData.odds} onChange={(e) => setFormData({...formData, odds: e.target.value})} required />
                     </div>
                   </div>
 
-                  {/* SELETOR DE BOOKMAKER */}
                   <div>
-                    <Label>Casa de Aposta *</Label>
+                    <Label className="font-bold">Casa de Aposta *</Label>
                     <select 
-                      className="w-full p-2 border rounded-md bg-white"
+                      className="w-full p-2 border rounded-md bg-white text-sm"
                       value={formData.bookmaker_id}
                       onChange={(e) => setFormData({...formData, bookmaker_id: e.target.value})}
                       required
                     >
-                      <option value="">Selecione a casa</option>
+                      <option value="">Selecione a Casa</option>
                       {bookmakers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                     </select>
                   </div>
 
-                  <Button type="submit" className="w-full bg-green-600 hover:bg-green-700">Criar Pick</Button>
+                  <div>
+                    <Label className="font-bold">Análise (Opcional)</Label>
+                    <Textarea value={formData.analysis} onChange={(e) => setFormData({...formData, analysis: e.target.value})} />
+                  </div>
+
+                  <Button type="submit" className="w-full bg-slate-900 font-bold uppercase tracking-widest py-6">Publicar Pick</Button>
                 </form>
               </CardContent>
             </Card>
-            
-            {/* Lista de Picks à direita (Mantenha seu código original aqui) */}
+
+            {/* LISTA DE PICKS SIMPLIFICADA */}
+            <Card className="bg-slate-100 border-none">
+                <CardHeader><CardTitle className="text-sm font-bold uppercase text-slate-500">Últimas Publicações</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                    {picks.slice(0, 5).map(p => (
+                        <div key={p.id} className="bg-white p-3 rounded border flex justify-between items-center shadow-sm">
+                            <div>
+                                <p className="font-black text-xs uppercase">{p.event?.home_team?.name} x {p.event?.away_team?.name}</p>
+                                <p className="text-[10px] text-slate-400 font-bold">{p.analyst?.display_name} • {p.selection} @{p.odds}</p>
+                            </div>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
           </div>
         </main>
 
