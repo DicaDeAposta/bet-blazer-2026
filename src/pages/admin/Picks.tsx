@@ -22,6 +22,8 @@ interface Pick {
   event: { home_team: { name: string }; away_team: { name: string } };
   market_type: { name: string };
   bookmaker: { name: string };
+  analyst: { display_name: string };
+  site: { name: string };
 }
 
 interface Event {
@@ -132,7 +134,9 @@ const Picks = () => {
             away_team:teams!events_away_team_id_fkey(name)
           ),
           market_type:market_types(name),
-          bookmaker:bookmakers(name)
+          bookmaker:bookmakers_public(name),
+          analyst:analyst_profiles(display_name),
+          site:sites(name)
         `)
         .order("created_at", { ascending: false });
       
@@ -152,7 +156,7 @@ const Picks = () => {
       return;
     }
 
-    // Here we provide a simple placeholder analysis
+    // Simple placeholder analysis
     const event = events.find(e => e.id === formData.event_id);
     const simpleAnalysis = `This is a simple analysis of ${event?.home_team.name} vs ${event?.away_team.name}, Market: ${formData.market_type}`;
 
