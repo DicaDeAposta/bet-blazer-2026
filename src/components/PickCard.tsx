@@ -13,8 +13,9 @@ interface Pick {
   market_type: { name: string; slug: string };
   related_player: { name: string; photo_url: string | null } | null;
   related_team: { name: string; logo_url: string | null } | null;
-  bookmaker: any; // Usamos 'any' aqui para burlar o bloqueio de segurança do Lovable no Publish
+  bookmaker: { name: string }; // Acessar o nome do bookmaker
   analyst: { display_name: string; avatar_url: string | null; bio: string | null };
+  site: { name: string }; // Acessar o nome do site
 }
 
 interface PickCardProps {
@@ -62,7 +63,7 @@ export const PickCard = ({ pick, isAnalysisExpanded, onToggleAnalysis }: PickCar
           )}
           <div className="flex flex-col">
             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              {pick.market_type?.name}
+              {pick.market_type?.name} {/* Exibe o nome do tipo de mercado */}
             </span>
             <span className="font-black text-lg uppercase leading-tight text-slate-900">
               {pick.selection}
@@ -74,7 +75,7 @@ export const PickCard = ({ pick, isAnalysisExpanded, onToggleAnalysis }: PickCar
           </div>
         </div>
 
-        {/* Coluna 2: Odds e Botão de Afiliado (Visual Novo) */}
+        {/* Coluna 2: Odds e Botão de Afiliado */}
         <div className="flex flex-col items-center justify-center">
           <span className="text-[10px] font-bold text-slate-400 uppercase mb-2">Odds</span>
           <a
