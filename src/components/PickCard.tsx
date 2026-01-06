@@ -11,9 +11,12 @@ interface Pick {
   odds_format: string;
   analysis: string | null;
   created_at: string;
+  // Alterado para refletir o relacionamento com a tabela de eventos
+  event?: {
+    home_team: { name: string; logo_url: string | null };
+    away_team: { name: string; logo_url: string | null };
+  };
   market_type?: { name: string; slug: string } | any;
-  related_player?: { name: string; photo_url: string | null } | null;
-  related_team?: { name: string; logo_url: string | null } | null;
   bookmaker?: any;
   analyst?: { display_name: string; avatar_url: string | null; bio: string | null } | any;
 }
@@ -25,7 +28,6 @@ interface PickCardProps {
 }
 
 export const PickCard = ({ pick, isAnalysisExpanded, onToggleAnalysis }: PickCardProps) => {
-  // Proteção para data inválida
   const getHoursAgo = () => {
     try {
       return formatDistanceToNow(new Date(pick.created_at), { addSuffix: false, locale: ptBR });
@@ -35,8 +37,6 @@ export const PickCard = ({ pick, isAnalysisExpanded, onToggleAnalysis }: PickCar
   };
 
   const hoursAgo = getHoursAgo();
-
-  // Acessando os dados com segurança (Null Safety)
   const bkm = pick?.bookmaker || {};
   const affiliateLink = bkm?.affiliate_link || bkm?.affiliate_url || "#";
   const bkmName = bkm?.name || "";
@@ -54,24 +54,27 @@ export const PickCard = ({ pick, isAnalysisExpanded, onToggleAnalysis }: PickCar
 
   const finalLogo = getLogo();
 
+  // Lógica para definir qual logo exibir na esquerda (geralmente o time da casa do evento)
+  const displayLogo = pick.event?.home_team?.logo_url || pick.event?.away_team?.logo_url;
+
   return (
     <article className="p-4 md:p-6 bg-white hover:bg-slate-50 transition-colors border-b">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
         
-        {/* Coluna 1: Seleção */}
+        {/* Coluna 1: Seleção e Evento */}
         <div className="flex items-center gap-4">
-          {(pick.related_player?.photo_url || pick.related_team?.logo_url) && (
+          {displayLogo && (
             <div className="h-12 w-12 flex-shrink-0">
               <img 
-                src={pick.related_player?.photo_url || pick.related_team?.logo_url || ""} 
+                src={displayLogo} 
                 className="h-full w-full object-contain" 
-                alt="selection"
+                alt="team logo"
               />
             </div>
           )}
           <div className="flex flex-col">
             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              {pick.market_type?.name || "Mercado"}
+              {pick.event ? `${pick.event.home_team.name} vs ${pick.event.away_team.name}` : (pick.market_type?.name || "MERCADO")}
             </span>
             <span className="font-black text-lg uppercase leading-tight text-slate-900">
               {pick.selection || "Sem Seleção"}
